@@ -123,7 +123,7 @@ router.get("/projects", async (req, res): Promise<void> => {
 router.post("/projects", async (req, res): Promise<void> => {
   const body = req.body;
   if (!body.projectCode || !body.date) {
-    res.status(400).json({ error: "projectCode and date are required" });
+    throw new Error("projectCode and date are required");
     return;
   }
 
@@ -184,7 +184,7 @@ router.get("/projects/:id", async (req, res): Promise<void> => {
     .where(eq(projectsTable.id, id));
 
   if (!project) {
-    res.status(404).json({ error: "Project not found" });
+    res.status(404).json({ type: "about:blank", title: "Not Found", status: 404, detail: "Project not found" });
     return;
   }
 
@@ -270,7 +270,7 @@ router.put("/projects/:id", async (req, res): Promise<void> => {
   }
 
   const [updated] = await db.update(projectsTable).set(updateData).where(eq(projectsTable.id, id)).returning();
-  if (!updated) { res.status(404).json({ error: "Not found" }); return; }
+  if (!updated) { res.status(404).json({ type: "about:blank", title: "Not Found", status: 404, detail: "Not found" }); return; }
 
   const [result] = await db
     .select(projectSelect)
