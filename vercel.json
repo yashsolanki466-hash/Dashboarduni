@@ -3,7 +3,7 @@
   "buildCommand": "pnpm run build",
   "installCommand": "pnpm install",
   "framework": "vite",
-  "outputDirectory": "artifacts/unipath-mis/dist",
+  "outputDirectory": "artifacts/unipath-mis/dist/public",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "artifacts/api-server/dist/index.mjs" },
     { "source": "/(.*)", "destination": "/index.html" }
