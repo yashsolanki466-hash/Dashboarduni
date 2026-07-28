@@ -33,6 +33,13 @@ const connectionString = process.env.DATABASE_URL || "postgresql://postgres:post
 
 export const pool = new pg.Pool({
   connectionString,
+  max: process.env.DB_MAX_CONNECTIONS ? parseInt(process.env.DB_MAX_CONNECTIONS, 10) : 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
+
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
 });
 
 export const db = drizzle(pool, { schema });

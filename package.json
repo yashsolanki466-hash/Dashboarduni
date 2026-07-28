@@ -9,6 +9,7 @@
   },
   "private": true,
   "dependencies": {
+    "@libsql/client": "^0.17.4",
     "@replit/connectors-sdk": "^0.4.1",
     "xlsx": "^0.18.5"
   },

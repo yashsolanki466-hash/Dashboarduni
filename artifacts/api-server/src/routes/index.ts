@@ -9,10 +9,12 @@ import invoicesRouter from "./invoices";
 import paymentsRouter from "./payments";
 import analyticsRouter from "./analytics";
 import attachmentsRouter from "./attachments";
+import authRouter from "./auth";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(authRouter);
 router.use(clientsRouter);
 router.use(servicesRouter);
 router.use(scientistsRouter);

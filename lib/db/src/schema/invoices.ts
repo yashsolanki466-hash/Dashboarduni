@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, real, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, real, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { projectsTable } from "./projects";
@@ -17,6 +17,12 @@ export const invoicesTable = pgTable("invoices", {
   invoiceFileId: integer("invoice_file_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    invoiceNoIdx: index("invoice_no_idx").on(table.invoiceNo),
+    projectIdIdx: index("invoice_project_id_idx").on(table.projectId),
+    paymentStatusIdx: index("payment_status_idx").on(table.paymentStatus),
+  };
 });
 
 export const insertInvoiceSchema = createInsertSchema(invoicesTable).omit({ id: true, createdAt: true, updatedAt: true });

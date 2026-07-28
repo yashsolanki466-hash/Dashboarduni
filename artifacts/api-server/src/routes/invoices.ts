@@ -60,7 +60,7 @@ router.get("/invoices", async (req, res): Promise<void> => {
 
 router.post("/invoices", async (req, res): Promise<void> => {
   const { projectId, invoiceNo, invoiceDate, qcPassSamples, subtotal, gst, totalAmount, invoiceTatDays, paymentStatus, invoiceFileId } = req.body;
-  if (!projectId) { res.status(400).json({ error: "projectId is required" }); return; }
+  if (!projectId) { res.status(400).json({ type: "about:blank", title: "Bad Request", status: 400, detail: "projectId is required" }); return; }
 
   const [inv] = await db.insert(invoicesTable).values({
     projectId,
@@ -93,7 +93,7 @@ router.get("/invoices/:id", async (req, res): Promise<void> => {
     .leftJoin(projectsTable, eq(invoicesTable.projectId, projectsTable.id))
     .leftJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
     .where(eq(invoicesTable.id, id));
-  if (!result) { res.status(404).json({ error: "Not found" }); return; }
+  if (!result) { res.status(404).json({ type: "about:blank", title: "Not Found", status: 404, detail: "Not found" }); return; }
   res.json(result);
 });
 
@@ -116,7 +116,7 @@ router.put("/invoices/:id", async (req, res): Promise<void> => {
     .leftJoin(projectsTable, eq(invoicesTable.projectId, projectsTable.id))
     .leftJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
     .where(eq(invoicesTable.id, id));
-  if (!result) { res.status(404).json({ error: "Not found" }); return; }
+  if (!result) { res.status(404).json({ type: "about:blank", title: "Not Found", status: 404, detail: "Not found" }); return; }
   res.json(result);
 });
 
