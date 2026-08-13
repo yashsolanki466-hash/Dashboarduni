@@ -24,6 +24,7 @@ import { Search, Filter, Dna, Edit2, Play, CheckCircle2, ChevronRight, Check } f
 import { formatDate } from "@/lib/utils";
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+const STATUS_COLORS = ['#94a3b8', '#818cf8', '#60a5fa', '#f59e0b', '#f97316', '#10b981'];
 
 const PIPELINE_STEPS = [
   { name: "Received in Run", progress: 20, color: "bg-slate-300 dark:bg-slate-700" },
@@ -93,7 +94,8 @@ export default function Bioinformatics() {
         }
       });
 
-      queryClient.invalidateQueries({ queryKey: getListProjectsQueryKey() });
+      await queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      await queryClient.invalidateQueries({ queryKey: getListProjectsQueryKey() });
       setIsUpdateOpen(false);
       toast({ title: "Pipeline progress updated successfully!" });
     } catch (err: any) {
@@ -159,6 +161,32 @@ export default function Bioinformatics() {
     return Array.from(set).sort();
   }, [projects]);
 
+  // Pipeline status completion chart data
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      "Pending": 0,
+      "Received in Run": 0,
+      "Started Analysis": 0,
+      "Analysis Steps": 0,
+      "Report Generation": 0,
+      "Submitted": 0
+    };
+    filteredProjects.forEach(p => {
+      const status = getResolvedBioinfoStatus(p);
+      if (status in counts) {
+        counts[status]++;
+      }
+    });
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [filteredProjects]);
+
+  console.log("Bioinfo Filter Debug:", {
+    statusFilter,
+    totalProjects: projects.length,
+    filteredCount: filteredProjects.length,
+    projectStatuses: projects.map(p => ({ code: p.projectCode, status: getResolvedBioinfoStatus(p) }))
+  });
+
   // Get current step details
   const getProgressPercent = (status?: string) => {
     if (!status || status === "Pending") return 0;
@@ -213,7 +241,7 @@ export default function Bioinformatics() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Run-wise Volume Bar Chart */}
         <Card className="shadow-sm border-none">
           <CardHeader className="pb-2">
@@ -312,6 +340,49 @@ export default function Bioinformatics() {
                     ))}
                   </Bar>
                 </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Workflow Completion Progress Pie Chart */}
+        <Card className="shadow-sm border-none">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Workflow Progress</CardTitle>
+            <CardDescription className="text-xs">Projects by current pipeline stage</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[250px] flex items-center justify-center pt-2">
+            {filteredProjects.length === 0 ? (
+              <div className="text-muted-foreground">No workflow data available</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statusCounts}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={75}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {statusCounts.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px" }} 
+                    itemStyle={{ color: "hsl(var(--foreground))" }}
+                    labelStyle={{ color: "hsl(var(--foreground))" }}
+                  />
+                  <Legend 
+                    layout="horizontal" 
+                    verticalAlign="bottom" 
+                    align="center"
+                    iconSize={8}
+                    wrapperStyle={{ fontSize: '9px', paddingTop: '10px' }}
+                  />
+                </PieChart>
               </ResponsiveContainer>
             )}
           </CardContent>
