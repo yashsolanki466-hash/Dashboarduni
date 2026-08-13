@@ -44,6 +44,7 @@ export default defineConfig({
     "./src/schema/invoices.ts",
     "./src/schema/payments.ts",
     "./src/schema/attachments.ts",
+    "./src/schema/bioinfoRecords.ts",
   ],
   dialect: "postgresql",
   dbCredentials: {
