@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { exportProjectsToCsv } from "./lib/csvExport";
 
 const rawPort = process.env["PORT"] || "5000";
 
@@ -16,4 +17,5 @@ app.listen(port, "0.0.0.0", (err) => {
   }
 
   logger.info({ port, host: "0.0.0.0" }, "Server listening on 0.0.0.0");
+  exportProjectsToCsv().catch(() => {});
 });

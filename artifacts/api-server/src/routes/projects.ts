@@ -1,5 +1,8 @@
 import { Router, type IRouter } from "express";
 import { eq, like, and, or, desc, count, SQL, gte, lte } from "drizzle-orm";
+import path from "path";
+import { fileURLToPath } from "url";
+import { exportProjectsToCsv } from "../lib/csvExport";
 import {
   db,
   projectsTable,
@@ -12,6 +15,7 @@ import {
   dataDeliveriesTable,
   invoicesTable,
   paymentsTable,
+  bioinfoRecordsTable,
 } from "@workspace/db";
 
 const router: IRouter = Router();
@@ -46,9 +50,12 @@ const projectSelect = {
   territoryId: projectsTable.territoryId,
   territoryName: territoriesTable.name,
   city: projectsTable.city,
+  status: projectsTable.status,
   remark: projectsTable.remark,
   runNo: qcRecordsTable.runNo,
   quotationFileId: projectsTable.quotationFileId,
+  bioinfoStatus: bioinfoRecordsTable.status,
+  bioinfoPipelineStep: bioinfoRecordsTable.pipelineStep,
   createdAt: projectsTable.createdAt,
   updatedAt: projectsTable.updatedAt,
 };
@@ -91,7 +98,8 @@ router.get("/projects", async (req, res): Promise<void> => {
     .leftJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
     .leftJoin(salesPersonsTable, eq(projectsTable.salesPersonId, salesPersonsTable.id))
     .leftJoin(territoriesTable, eq(projectsTable.territoryId, territoriesTable.id))
-    .leftJoin(qcRecordsTable, eq(projectsTable.id, qcRecordsTable.projectId));
+    .leftJoin(qcRecordsTable, eq(projectsTable.id, qcRecordsTable.projectId))
+    .leftJoin(bioinfoRecordsTable, eq(projectsTable.id, bioinfoRecordsTable.projectId));
 
   const [{ total }] = await db
     .select({ total: count() })
@@ -102,6 +110,7 @@ router.get("/projects", async (req, res): Promise<void> => {
     .leftJoin(salesPersonsTable, eq(projectsTable.salesPersonId, salesPersonsTable.id))
     .leftJoin(territoriesTable, eq(projectsTable.territoryId, territoriesTable.id))
     .leftJoin(qcRecordsTable, eq(projectsTable.id, qcRecordsTable.projectId))
+    .leftJoin(bioinfoRecordsTable, eq(projectsTable.id, bioinfoRecordsTable.projectId))
     .where(where);
 
   const data = await baseQuery
@@ -164,9 +173,22 @@ router.post("/projects", async (req, res): Promise<void> => {
     .leftJoin(salesPersonsTable, eq(projectsTable.salesPersonId, salesPersonsTable.id))
     .leftJoin(territoriesTable, eq(projectsTable.territoryId, territoriesTable.id))
     .leftJoin(qcRecordsTable, eq(projectsTable.id, qcRecordsTable.projectId))
+    .leftJoin(bioinfoRecordsTable, eq(projectsTable.id, bioinfoRecordsTable.projectId))
     .where(eq(projectsTable.id, project.id));
 
   res.status(201).json({ ...result, billingClientId: null, billingClientName: null });
+  exportProjectsToCsv().catch(() => {});
+});
+
+router.get("/projects/export/csv", async (req, res): Promise<void> => {
+  try {
+    await exportProjectsToCsv();
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+    const filePath = path.resolve(currentDir, "../../../../unipath_projects_live.csv");
+    res.download(filePath, "unipath_projects_live.csv");
+  } catch (err) {
+    res.status(500).json({ error: "Failed to export CSV" });
+  }
 });
 
 router.get("/projects/:id", async (req, res): Promise<void> => {
@@ -181,6 +203,7 @@ router.get("/projects/:id", async (req, res): Promise<void> => {
     .leftJoin(salesPersonsTable, eq(projectsTable.salesPersonId, salesPersonsTable.id))
     .leftJoin(territoriesTable, eq(projectsTable.territoryId, territoriesTable.id))
     .leftJoin(qcRecordsTable, eq(projectsTable.id, qcRecordsTable.projectId))
+    .leftJoin(bioinfoRecordsTable, eq(projectsTable.id, bioinfoRecordsTable.projectId))
     .where(eq(projectsTable.id, id));
 
   if (!project) {
@@ -190,6 +213,7 @@ router.get("/projects/:id", async (req, res): Promise<void> => {
 
   const [qcRecord] = await db.select().from(qcRecordsTable).where(eq(qcRecordsTable.projectId, id));
   const [dataDelivery] = await db.select().from(dataDeliveriesTable).where(eq(dataDeliveriesTable.projectId, id));
+  const [bioinfoRecord] = await db.select().from(bioinfoRecordsTable).where(eq(bioinfoRecordsTable.projectId, id));
   const invoices = await db
     .select({
       id: invoicesTable.id,
@@ -242,6 +266,7 @@ router.get("/projects/:id", async (req, res): Promise<void> => {
     billingClientName: null,
     qcRecord: qcRecord || null,
     dataDelivery: dataDelivery || null,
+    bioinfoRecord: bioinfoRecord || null,
     invoices,
     payments,
   });
@@ -281,15 +306,18 @@ router.put("/projects/:id", async (req, res): Promise<void> => {
     .leftJoin(salesPersonsTable, eq(projectsTable.salesPersonId, salesPersonsTable.id))
     .leftJoin(territoriesTable, eq(projectsTable.territoryId, territoriesTable.id))
     .leftJoin(qcRecordsTable, eq(projectsTable.id, qcRecordsTable.projectId))
+    .leftJoin(bioinfoRecordsTable, eq(projectsTable.id, bioinfoRecordsTable.projectId))
     .where(eq(projectsTable.id, id));
 
   res.json({ ...result, billingClientId: null, billingClientName: null });
+  exportProjectsToCsv().catch(() => {});
 });
 
 router.delete("/projects/:id", async (req, res): Promise<void> => {
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   await db.delete(projectsTable).where(eq(projectsTable.id, id));
   res.sendStatus(204);
+  exportProjectsToCsv().catch(() => {});
 });
 
 // QC Records
@@ -317,6 +345,7 @@ router.put("/projects/:projectId/qc", async (req, res): Promise<void> => {
       .returning();
   }
   res.json(record);
+  exportProjectsToCsv().catch(() => {});
 });
 
 // Data Delivery
@@ -344,6 +373,35 @@ router.put("/projects/:projectId/delivery", async (req, res): Promise<void> => {
       .returning();
   }
   res.json(record);
+  exportProjectsToCsv().catch(() => {});
+});
+
+// Bioinformatics Records
+router.get("/projects/:projectId/bioinfo", async (req, res): Promise<void> => {
+  const projectId = parseInt(Array.isArray(req.params.projectId) ? req.params.projectId[0] : req.params.projectId, 10);
+  const [record] = await db.select().from(bioinfoRecordsTable).where(eq(bioinfoRecordsTable.projectId, projectId));
+  res.json(record || null);
+});
+
+router.put("/projects/:projectId/bioinfo", async (req, res): Promise<void> => {
+  const projectId = parseInt(Array.isArray(req.params.projectId) ? req.params.projectId[0] : req.params.projectId, 10);
+  const { status, pipelineStep, notes } = req.body;
+
+  const [existing] = await db.select().from(bioinfoRecordsTable).where(eq(bioinfoRecordsTable.projectId, projectId));
+
+  let record;
+  if (existing) {
+    [record] = await db.update(bioinfoRecordsTable)
+      .set({ status, pipelineStep, notes, updatedAt: new Date() })
+      .where(eq(bioinfoRecordsTable.projectId, projectId))
+      .returning();
+  } else {
+    [record] = await db.insert(bioinfoRecordsTable)
+      .values({ projectId, status, pipelineStep, notes })
+      .returning();
+  }
+  res.json(record);
+  exportProjectsToCsv().catch(() => {});
 });
 
 export default router;

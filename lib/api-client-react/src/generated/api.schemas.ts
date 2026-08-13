@@ -136,6 +136,8 @@ export interface Project {
   remark?: string;
   runNo?: string;
   quotationFileId?: number;
+  bioinfoStatus?: string;
+  bioinfoPipelineStep?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -300,6 +302,7 @@ export interface ProjectDetail {
   updatedAt: string;
   qcRecord?: QcRecord;
   dataDelivery?: DataDelivery;
+  bioinfoRecord?: BioinfoRecord;
   invoices?: Invoice[];
   payments?: Payment[];
 }
@@ -528,6 +531,7 @@ dateFrom?: string;
 dateTo?: string;
 month?: string;
 withAnalysis?: string;
+runNo?: string;
 page?: number;
 pageSize?: number;
 };
@@ -637,5 +641,20 @@ export interface Attachment {
   fileName: string;
   mimeType: string;
   createdAt?: string;
+}
+
+export interface BioinfoRecord {
+  id: number;
+  projectId: number;
+  status: string;
+  pipelineStep?: string;
+  notes?: string;
+  updatedAt?: string;
+}
+
+export interface BioinfoRecordInput {
+  status: string;
+  pipelineStep?: string;
+  notes?: string;
 }
 

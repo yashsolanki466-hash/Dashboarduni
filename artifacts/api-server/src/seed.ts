@@ -14,6 +14,7 @@ import {
   dataDeliveriesTable,
   invoicesTable,
   paymentsTable,
+  bioinfoRecordsTable,
 } from "@workspace/db";
 import { logger } from "./lib/logger";
 import XLSX from "xlsx";
@@ -46,6 +47,11 @@ function toString(value: any): string | null {
   return String(value).trim() || null;
 }
 
+function findHeaderIndex(headers: any[], name: string): number {
+  const cleanName = name.trim().toLowerCase();
+  return headers.findIndex(h => h && String(h).trim().toLowerCase() === cleanName);
+}
+
 async function seed() {
   logger.info("Seeding database…");
 
@@ -54,6 +60,7 @@ async function seed() {
   await db.delete(invoicesTable);
   await db.delete(dataDeliveriesTable);
   await db.delete(qcRecordsTable);
+  await db.delete(bioinfoRecordsTable);
   await db.delete(projectsTable);
   await db.delete(clientsTable);
   await db.delete(servicesTable);
@@ -62,7 +69,7 @@ async function seed() {
   await db.delete(territoriesTable);
 
   // Parse Excel file
-  const excelPath = path.join(__dirname, "../../../MASTER-MIS-UNIPATH-2025-26.xlsx");
+  const excelPath = path.join(__dirname, "../../../DEEP-CLEANED-MASTER-MIS-UNIPATH-2025-26.xlsx");
   const workbook = XLSX.readFile(excelPath);
   const dataSheet = workbook.Sheets["Data"];
   const rawRows = XLSX.utils.sheet_to_json(dataSheet, { header: 1 }) as any[][];
@@ -79,14 +86,14 @@ async function seed() {
   const clientsSet = new Map<string, { city: string | null; billingName: string | null; territory: string | null }>();
 
   for (const row of dataRows) {
-    const territory = toString(row[headers.indexOf("TERRITORY NAME")]);
-    const salesPerson = toString(row[headers.indexOf("SALES PERSON")]);
-    const scientist = toString(row[headers.indexOf("SCIENTIST NAME")]);
-    const serviceName = toString(row[headers.indexOf("SERVICE NAME")]);
-    const serviceHead = toString(row[headers.indexOf("SERVICE HEAD")]);
-    const institute = toString(row[headers.indexOf("INSTITUTE")]);
-    const billing = toString(row[headers.indexOf("BILLING")]);
-    const city = toString(row[headers.indexOf("CITY")]);
+    const territory = toString(row[findHeaderIndex(headers, "TERRITORY NAME")]);
+    const salesPerson = toString(row[findHeaderIndex(headers, "SALES PERSON")]);
+    const scientist = toString(row[findHeaderIndex(headers, "SCIENTIST NAME")]);
+    const serviceName = toString(row[findHeaderIndex(headers, "SERVICE NAME")]);
+    const serviceHead = toString(row[findHeaderIndex(headers, "SERVICE HEAD")]);
+    const institute = toString(row[findHeaderIndex(headers, "INSTITUTE")]);
+    const billing = toString(row[findHeaderIndex(headers, "BILLING")]);
+    const city = toString(row[findHeaderIndex(headers, "CITY")]);
 
     if (territory) territoriesSet.add(territory);
     if (salesPerson && territory) salesPersonsSet.set(salesPerson, territory);
@@ -161,7 +168,7 @@ async function seed() {
 
   for (const row of dataRows) {
     try {
-      const baseCode = toString(row[headers.indexOf("PROJECT ID")]);
+      const baseCode = toString(row[findHeaderIndex(headers, "PROJECT ID")]);
       if (!baseCode) continue;
 
       let projectCode = baseCode;
@@ -172,51 +179,51 @@ async function seed() {
       }
       seenCodes.add(projectCode);
 
-      const dateSerial = toNumber(row[headers.indexOf("DATE")]);
+      const dateSerial = toNumber(row[findHeaderIndex(headers, "DATE")]);
       const date = excelSerialToDate(dateSerial);
-      const month = toString(row[headers.indexOf("Month ")]);
-      const labSubmissionDateSerial = toNumber(row[headers.indexOf("Lab Process Submission Date")]);
+      const month = toString(row[findHeaderIndex(headers, "Month")]);
+      const labSubmissionDateSerial = toNumber(row[findHeaderIndex(headers, "Lab Process Submission Date")]);
       const labSubmissionDate = excelSerialToDate(labSubmissionDateSerial);
-      const scientistName = toString(row[headers.indexOf("SCIENTIST NAME")]);
-      const institute = toString(row[headers.indexOf("INSTITUTE")]);
-      const billing = toString(row[headers.indexOf("BILLING")]);
-      const serviceName = toString(row[headers.indexOf("SERVICE NAME")]);
-      const sampleType = toString(row[headers.indexOf("Sample Type ")]);
-      const withAnalysis = toString(row[headers.indexOf("With/Without Analysis")]);
-      const noOfSamples = toNumber(row[headers.indexOf("NO OF SAMPLE")]);
-      const gbPerSample = toNumber(row[headers.indexOf("GB DATA OUTPUT")]);
-      const totalGb = toNumber(row[headers.indexOf("TOTAL GB DATA OUTPUT")]);
-      const ratePerSample = toNumber(row[headers.indexOf("RATE PER SAMPLE")]);
-      const totalAmount = toNumber(row[headers.indexOf("TOTAL")]);
-      const gst = toNumber(row[headers.indexOf("GST")]);
-      const totalProjectCost = toNumber(row[headers.indexOf("TOTAL PROJECT COST")]);
-      const quotationNo = toString(row[headers.indexOf("QUOTATION NO./GEM NO.")]);
-      const salesPersonName = toString(row[headers.indexOf("SALES PERSON")]);
-      const territoryName = toString(row[headers.indexOf("TERRITORY NAME")]);
-      const city = toString(row[headers.indexOf("CITY")]);
-      const qcPass = toNumber(row[headers.indexOf("QC Pass ")]);
-      const qcFail = toNumber(row[headers.indexOf("QC Fail")]);
-      const qcReportDateSerial = toNumber(row[headers.indexOf("QC Report Received Date")]);
+      const scientistName = toString(row[findHeaderIndex(headers, "SCIENTIST NAME")]);
+      const institute = toString(row[findHeaderIndex(headers, "INSTITUTE")]);
+      const billing = toString(row[findHeaderIndex(headers, "BILLING")]);
+      const serviceName = toString(row[findHeaderIndex(headers, "SERVICE NAME")]);
+      const sampleType = toString(row[findHeaderIndex(headers, "Sample Type")]);
+      const withAnalysis = toString(row[findHeaderIndex(headers, "With/Without Analysis")]);
+      const noOfSamples = toNumber(row[findHeaderIndex(headers, "NO OF SAMPLE")]);
+      const gbPerSample = toNumber(row[findHeaderIndex(headers, "GB DATA OUTPUT")]);
+      const totalGb = toNumber(row[findHeaderIndex(headers, "TOTAL GB DATA OUTPUT")]);
+      const ratePerSample = toNumber(row[findHeaderIndex(headers, "RATE PER SAMPLE")]);
+      const totalAmount = toNumber(row[findHeaderIndex(headers, "TOTAL")]);
+      const gst = toNumber(row[findHeaderIndex(headers, "GST")]);
+      const totalProjectCost = toNumber(row[findHeaderIndex(headers, "TOTAL PROJECT COST")]);
+      const quotationNo = toString(row[findHeaderIndex(headers, "QUOTATION NO./GEM NO.")]);
+      const salesPersonName = toString(row[findHeaderIndex(headers, "SALES PERSON")]);
+      const territoryName = toString(row[findHeaderIndex(headers, "TERRITORY NAME")]);
+      const city = toString(row[findHeaderIndex(headers, "CITY")]);
+      const qcPass = toNumber(row[findHeaderIndex(headers, "QC Pass")]);
+      const qcFail = toNumber(row[findHeaderIndex(headers, "QC Fail")]);
+      const qcReportDateSerial = toNumber(row[findHeaderIndex(headers, "QC Report Received Date")]);
       const qcReportDate = excelSerialToDate(qcReportDateSerial);
-      const qcTatDays = toNumber(row[headers.indexOf("QC TAT Status")]);
-      const runNo = toString(row[headers.indexOf("Run No ")]);
-      const rawDataSentDateSerial = toNumber(row[headers.indexOf("Raw Data Sent Date ")]);
+      const qcTatDays = toNumber(row[findHeaderIndex(headers, "QC TAT Status")]);
+      const runNo = toString(row[findHeaderIndex(headers, "Run No")]);
+      const rawDataSentDateSerial = toNumber(row[findHeaderIndex(headers, "Raw Data Sent Date")]);
       const rawDataSentDate = excelSerialToDate(rawDataSentDateSerial);
-      const finalDataDateSerial = toNumber(row[headers.indexOf("Final Data Received Date ")]);
+      const finalDataDateSerial = toNumber(row[findHeaderIndex(headers, "Final Data Received Date")]);
       const finalDataDate = excelSerialToDate(finalDataDateSerial);
-      const invoiceNo = toString(row[headers.indexOf("INVOICE NO.")]);
-      const invoiceDateSerial = toNumber(row[headers.indexOf("INVOICE DATE .")]);
+      const invoiceNo = toString(row[findHeaderIndex(headers, "INVOICE NO.")]);
+      const invoiceDateSerial = toNumber(row[findHeaderIndex(headers, "INVOICE DATE .")]);
       const invoiceDate = excelSerialToDate(invoiceDateSerial);
-      const remark = toString(row[headers.indexOf("Remark")]);
-      const qcPassSamples = toNumber(row[headers.indexOf("(QC Pass samples) TOTAL")]);
-      const invoiceTatDays = toNumber(row[headers.indexOf("Invoice TAT")]);
-      const receivedPayment = toNumber(row[headers.indexOf("Received Payment")]);
-      const remainingPayment = toNumber(row[headers.indexOf("Remaining payment")]);
-      const paymentReceivedDateSerial = toNumber(row[headers.indexOf(" Payment Received Date ")]);
+      const remark = toString(row[findHeaderIndex(headers, "Remark")]);
+      const qcPassSamples = toNumber(row[findHeaderIndex(headers, "(QC Pass samples) TOTAL")]);
+      const invoiceTatDays = toNumber(row[findHeaderIndex(headers, "Invoice TAT")]);
+      const receivedPayment = toNumber(row[findHeaderIndex(headers, "Received Payment")]);
+      const remainingPayment = toNumber(row[findHeaderIndex(headers, "Remaining payment")]);
+      const paymentReceivedDateSerial = toNumber(row[findHeaderIndex(headers, "Payment Received Date")]);
       const paymentReceivedDate = excelSerialToDate(paymentReceivedDateSerial);
 
       // Insert project
-      const remarkRaw = toString(row[headers.indexOf("Remark")]);
+      const remarkRaw = toString(row[findHeaderIndex(headers, "Remark")]);
       let status = "In Progress";
       if (remarkRaw) {
         if (remarkRaw.toLowerCase().includes("closure")) {
@@ -242,7 +249,7 @@ async function seed() {
           sampleType,
           withAnalysis,
           noOfSamples,
-          dataRequirement: toString(row[headers.indexOf("Data Requirement:")]),
+          dataRequirement: toString(row[findHeaderIndex(headers, "Data Requirement:")]),
           gbPerSample,
           totalGb,
           ratePerSample,

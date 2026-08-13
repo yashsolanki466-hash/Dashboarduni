@@ -13,7 +13,8 @@ import {
   LogOut,
   UserCircle,
   Sun,
-  Moon
+  Moon,
+  FileSpreadsheet
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
@@ -22,6 +23,7 @@ import { Button } from "@/components/ui/button";
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Projects", href: "/projects", icon: FolderKanban },
+  { name: "Bioinfo", href: "/bioinfo", icon: Dna },
   { name: "Invoices", href: "/invoices", icon: Receipt },
   { name: "Payments", href: "/payments", icon: CreditCard },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
@@ -55,16 +57,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </Link>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1.5 overflow-x-auto py-1">
+          <nav className="hidden md:flex items-center gap-1.5 py-1">
             {/* Core Operations */}
-            <div className="flex items-center gap-1 bg-background p-1 rounded-xl border border-border/40 shadow-terra">
+            <div className="flex items-center gap-0.5 bg-background p-0.5 rounded-lg border border-border/40 shadow-terra">
               {navigation.map((item) => {
                 const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
                 return (
                   <Link key={item.name} href={item.href} className={cn(
-                    "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150",
+                    "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-150",
                     isActive 
-                      ? "bg-primary text-primary-foreground shadow-terra font-semibold" 
+                      ? "bg-primary text-primary-foreground shadow-terra" 
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}>
                     <item.icon className="w-3.5 h-3.5" />
@@ -74,17 +76,17 @@ export function AppLayout({ children }: { children: ReactNode }) {
               })}
             </div>
 
-            <div className="h-5 w-[1px] bg-border/60 mx-1.5"></div>
+            <div className="h-5 w-[1px] bg-border/60 mx-0.5"></div>
 
             {/* Management */}
-            <div className="flex items-center gap-1 bg-background p-1 rounded-xl border border-border/40 shadow-terra">
+            <div className="flex items-center gap-0.5 bg-background p-0.5 rounded-lg border border-border/40 shadow-terra">
               {management.map((item) => {
                 const isActive = location === item.href || location.startsWith(item.href);
                 return (
                   <Link key={item.name} href={item.href} className={cn(
-                    "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150",
+                    "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-150",
                     isActive 
-                      ? "bg-primary text-primary-foreground shadow-terra font-semibold" 
+                      ? "bg-primary text-primary-foreground shadow-terra" 
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}>
                     <item.icon className="w-3.5 h-3.5" />
@@ -108,6 +110,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-primary" />
               <span className="sr-only">Toggle theme</span>
             </Button>
+
+            {/* Redesign Test simple link */}
+            <Link 
+              href="/dashboard-test" 
+              className="text-xs text-muted-foreground hover:text-primary transition-all duration-150 font-semibold hover:underline px-1 shrink-0"
+            >
+              Redesign Test
+            </Link>
+
+            {/* Download Excel / CSV Button */}
+            <a href="/api/projects/export/csv" download>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 rounded-xl border border-border/40 bg-background hover:bg-emerald-500/10 hover:text-emerald-500 hover:border-emerald-500/30 text-xs font-semibold gap-1.5 shadow-terra"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+                Download Sheet
+              </Button>
+            </a>
 
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-background border border-border/40 shadow-terra">
               <UserCircle className="w-4 h-4 text-primary" />

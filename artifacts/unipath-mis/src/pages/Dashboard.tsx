@@ -942,6 +942,7 @@ export default function Dashboard() {
                   <TableHead>Service</TableHead>
                   <TableHead>Analysis Scope</TableHead>
                   <TableHead>Run No</TableHead>
+                  <TableHead>Bioinfo Progress</TableHead>
                   <TableHead>Territory / City</TableHead>
                   <TableHead>Samples</TableHead>
                   <TableHead>Total Cost</TableHead>
@@ -974,6 +975,21 @@ export default function Dashboard() {
                       </TableCell>
                       <TableCell className="font-mono text-xs text-muted-foreground">
                         {project.runNo || "—"}
+                      </TableCell>
+                      <TableCell className="text-xs font-medium">
+                        {(() => {
+                          const resolvedStatus = project.bioinfoStatus || (project.status === "In Progress" ? "Started Analysis" : null);
+                          return resolvedStatus ? (
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-primary font-semibold text-[11px]">{resolvedStatus}</span>
+                              {project.bioinfoPipelineStep && (
+                                <span className="text-[10px] text-muted-foreground font-mono">{project.bioinfoPipelineStep}</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground font-mono text-xs">—</span>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {project.territoryName || project.city || "—"}

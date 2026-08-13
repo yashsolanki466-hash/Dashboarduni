@@ -14,6 +14,7 @@ export default function Projects() {
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [runNoFilter, setRunNoFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
@@ -21,6 +22,7 @@ export default function Projects() {
   const { data: projectsData, isLoading } = useListProjects({ 
     search: search || undefined,
     status: statusFilter !== "ALL" ? statusFilter : undefined,
+    runNo: runNoFilter || undefined,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
     page,
@@ -30,11 +32,12 @@ export default function Projects() {
   const projects = projectsData?.data || [];
   const totalPages = Math.ceil((projectsData?.total || 0) / (projectsData?.pageSize || 15));
 
-  const hasActiveFilters = Boolean(search || statusFilter !== "ALL" || dateFrom || dateTo);
+  const hasActiveFilters = Boolean(search || statusFilter !== "ALL" || runNoFilter || dateFrom || dateTo);
 
   const handleReset = () => {
     setSearch("");
     setStatusFilter("ALL");
+    setRunNoFilter("");
     setDateFrom("");
     setDateTo("");
     setPage(1);
@@ -72,11 +75,21 @@ export default function Projects() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">All Status</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="In Progress">In Progress</SelectItem>
                   <SelectItem value="Completed">Completed</SelectItem>
                   <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  <SelectItem value="QC Fail">QC Fail</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="w-full sm:w-40">
+              <Input 
+                placeholder="Run No..." 
+                value={runNoFilter}
+                onChange={(e) => { setRunNoFilter(e.target.value); setPage(1); }}
+                className="bg-background h-9 text-xs"
+              />
             </div>
             
             <div className="flex items-center gap-1.5 bg-background border border-input rounded-md px-2.5 h-9 w-full sm:w-auto">
@@ -113,6 +126,7 @@ export default function Projects() {
                 <TableHead>Code</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Service</TableHead>
+                <TableHead>Run No</TableHead>
                 <TableHead>Samples</TableHead>
                 <TableHead>Total Cost</TableHead>
                 <TableHead>Sub. Date</TableHead>
@@ -148,6 +162,7 @@ export default function Projects() {
                     <TableCell className="font-mono text-xs font-semibold text-primary">{project.projectCode}</TableCell>
                     <TableCell className="font-medium">{project.clientName}</TableCell>
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">{project.serviceName}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{project.runNo || "—"}</TableCell>
                     <TableCell>{project.noOfSamples}</TableCell>
                     <TableCell className="font-mono text-sm">{formatCurrency(project.totalProjectCost || 0)}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(project.labSubmissionDate || project.date)}</TableCell>

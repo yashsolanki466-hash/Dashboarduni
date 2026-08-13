@@ -6,10 +6,12 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ThemeProvider } from 'next-themes';
 import Dashboard from '@/pages/Dashboard';
+import DashboardTest from '@/pages/DashboardTest';
 import Projects from '@/pages/Projects';
 import ProjectDetail from '@/pages/ProjectDetail';
 import ProjectForm from '@/pages/ProjectForm';
 import InvoiceForm from '@/pages/InvoiceForm';
+import Bioinformatics from '@/pages/Bioinformatics';
 import Clients from '@/pages/Clients';
 import Services from '@/pages/Services';
 import Scientists from '@/pages/Scientists';
@@ -25,10 +27,12 @@ function Router() {
     <AppLayout>
       <Switch>
         <Route path="/" component={Dashboard} />
+        <Route path="/dashboard-test" component={DashboardTest} />
         <Route path="/projects" component={Projects} />
         <Route path="/projects/new" component={ProjectForm} />
         <Route path="/projects/:id/edit" component={ProjectForm} />
         <Route path="/projects/:id" component={ProjectDetail} />
+        <Route path="/bioinfo" component={Bioinformatics} />
         <Route path="/clients" component={Clients} />
         <Route path="/services" component={Services} />
         <Route path="/scientists" component={Scientists} />
