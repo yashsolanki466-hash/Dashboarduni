@@ -137,7 +137,7 @@ export default function Dashboard() {
       }
       return true;
     });
-  }, [allProjects, selectedClient, selectedScientist, selectedTerritory, selectedService, selectedStatus, selectedAnalysis, selectedRun, searchQuery, clientsMap]);
+  }, [allProjects, selectedClient, selectedScientist, selectedTerritory, selectedService, selectedStatus, selectedAnalysis, selectedRun, selectedServiceHead, searchQuery, clientsMap]);
 
   // Dynamic status options from projects data
   const statusOptions = useMemo(() => {
