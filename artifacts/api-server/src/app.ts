@@ -41,7 +41,7 @@ app.use("/api", router);
 const publicPath = path.resolve(__dirname, "../../unipath-mis/dist/public");
 if (fs.existsSync(publicPath)) {
   app.use(express.static(publicPath));
-  app.get("(.*)", (req, res) => {
+  app.get("/:any*", (req, res) => {
     const indexPath = path.resolve(publicPath, "index.html");
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);
