@@ -68,6 +68,7 @@ export default function Dashboard() {
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
   const [selectedAnalysis, setSelectedAnalysis] = useState<string>("ALL");
   const [selectedRun, setSelectedRun] = useState<string>("ALL");
+  const [selectedServiceHead, setSelectedServiceHead] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Data Fetching
@@ -108,6 +109,7 @@ export default function Dashboard() {
       if (selectedTerritory !== "ALL" && String(p.territoryId) !== selectedTerritory && p.territoryName !== selectedTerritory) return false;
       if (selectedService !== "ALL" && String(p.serviceId) !== selectedService && p.serviceName !== selectedService) return false;
       if (selectedStatus !== "ALL" && p.status !== selectedStatus) return false;
+      if (selectedServiceHead !== "ALL" && p.serviceHead !== selectedServiceHead) return false;
       if (selectedRun !== "ALL" && p.runNo !== selectedRun) return false;
 
       // With/Without Analysis Filter
@@ -152,6 +154,17 @@ export default function Dashboard() {
     allProjects.forEach((p) => {
       if (p.runNo && p.runNo.trim()) {
         set.add(p.runNo.trim());
+      }
+    });
+    return Array.from(set).sort();
+  }, [allProjects]);
+
+  // Dynamic service head options from projects data
+  const serviceHeadOptions = useMemo(() => {
+    const set = new Set<string>();
+    allProjects.forEach((p) => {
+      if (p.serviceHead && p.serviceHead.trim()) {
+        set.add(p.serviceHead.trim());
       }
     });
     return Array.from(set).sort();
@@ -324,6 +337,7 @@ export default function Dashboard() {
     selectedStatus !== "ALL",
     selectedAnalysis !== "ALL",
     selectedRun !== "ALL",
+    selectedServiceHead !== "ALL",
     Boolean(searchQuery.trim())
   ].filter(Boolean).length;
 
@@ -335,6 +349,7 @@ export default function Dashboard() {
     setSelectedStatus("ALL");
     setSelectedAnalysis("ALL");
     setSelectedRun("ALL");
+    setSelectedServiceHead("ALL");
     setSearchQuery("");
   };
 
@@ -371,7 +386,7 @@ export default function Dashboard() {
             Multi-Dimensional Operational Filters
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 pb-3 px-4 sm:px-6">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-3 pb-3 px-4 sm:px-6">
           {/* Client Filter */}
           <div className="space-y-1">
             <label className="text-[11px] font-medium text-muted-foreground">Client / Institute</label>
@@ -489,6 +504,24 @@ export default function Dashboard() {
                 {runOptions.map((run) => (
                   <SelectItem key={run} value={run}>
                     {run}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Service Head Filter */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground">Service Head</label>
+            <Select value={selectedServiceHead} onValueChange={setSelectedServiceHead}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="All Service Heads" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Service Heads ({serviceHeadOptions.length})</SelectItem>
+                {serviceHeadOptions.map((sh) => (
+                  <SelectItem key={sh} value={sh}>
+                    {sh}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -966,7 +999,12 @@ export default function Dashboard() {
                         {project.scientistName || "—"}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground truncate max-w-[180px]" title={project.serviceName || ""}>
-                        {project.serviceName || "—"}
+                        <div>
+                          {project.serviceName || "—"}
+                          {project.serviceHead && (
+                            <span className="block text-[10px] text-muted-foreground mt-0.5 font-medium">({project.serviceHead})</span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-xs">
                         <Badge variant={isWithAnalysis ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">

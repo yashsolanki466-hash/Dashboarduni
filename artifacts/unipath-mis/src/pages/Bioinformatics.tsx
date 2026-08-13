@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   useListProjects,
   useListClients,
@@ -41,6 +41,7 @@ export default function Bioinformatics() {
   const [search, setSearch] = useState("");
   const [serviceFilter, setServiceFilter] = useState("ALL");
   const [clientFilter, setClientFilter] = useState("ALL");
+  const [serviceHeadFilter, setServiceHeadFilter] = useState("ALL");
   const [runFilter, setRunFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
@@ -106,8 +107,9 @@ export default function Bioinformatics() {
 
   // Filter list locally for bioinfo status since API returns raw projects
   const filteredProjects = projects.filter(p => {
-    if (statusFilter === "ALL") return true;
-    return getResolvedBioinfoStatus(p) === statusFilter;
+    if (statusFilter !== "ALL" && getResolvedBioinfoStatus(p) !== statusFilter) return false;
+    if (serviceHeadFilter !== "ALL" && p.serviceHead !== serviceHeadFilter) return false;
+    return true;
   });
 
   // Calculate stats & aggregations
@@ -145,6 +147,17 @@ export default function Bioinformatics() {
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 6);
+
+  // Dynamic service head options from projects data
+  const serviceHeads = useMemo(() => {
+    const set = new Set<string>();
+    projects.forEach(p => {
+      if (p.serviceHead && p.serviceHead.trim()) {
+        set.add(p.serviceHead.trim());
+      }
+    });
+    return Array.from(set).sort();
+  }, [projects]);
 
   // Get current step details
   const getProgressPercent = (status?: string) => {
@@ -329,6 +342,16 @@ export default function Bioinformatics() {
           </div>
 
           <div className="w-full sm:w-44">
+            <Select value={serviceHeadFilter} onValueChange={setServiceHeadFilter}>
+              <SelectTrigger className="bg-background"><SelectValue placeholder="All Service Heads" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Service Heads</SelectItem>
+                {serviceHeads.map((sh: string) => <SelectItem key={sh} value={sh}>{sh}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-full sm:w-44">
             <Select value={clientFilter} onValueChange={setClientFilter}>
               <SelectTrigger className="bg-background"><SelectValue placeholder="All Clients" /></SelectTrigger>
               <SelectContent>
@@ -394,7 +417,14 @@ export default function Bioinformatics() {
                     <TableRow key={p.id}>
                       <TableCell className="font-mono text-sm font-semibold text-primary">{p.projectCode}</TableCell>
                       <TableCell className="truncate max-w-[180px]">{p.clientName || 'N/A'}</TableCell>
-                      <TableCell className="truncate max-w-[150px]">{p.serviceName || 'N/A'}</TableCell>
+                      <TableCell className="truncate max-w-[150px]">
+                        <div>
+                          {p.serviceName || 'N/A'}
+                          {p.serviceHead && (
+                            <span className="block text-[10px] text-muted-foreground mt-0.5 font-medium">({p.serviceHead})</span>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="font-mono text-xs">{p.runNo || <span className="text-muted-foreground">Pending</span>}</TableCell>
                       <TableCell>
                         <div className="space-y-1.5 pr-4">
