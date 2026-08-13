@@ -48,5 +48,6 @@ export default defineConfig({
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/unipath_mis",
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : undefined,
   },
 });

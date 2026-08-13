@@ -35,6 +35,7 @@ const connectionString = process.env.DATABASE_URL || "postgresql://postgres:post
 
 export const pool = new pg.Pool({
   connectionString,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : undefined,
 });
 
 export const db = drizzle(pool, { schema });
