@@ -21,7 +21,9 @@ try {
         } else if (val.startsWith("'") && val.endsWith("'")) {
           val = val.substring(1, val.length - 1);
         }
-        process.env[key] = val.trim();
+        if (!process.env[key]) {
+          process.env[key] = val.trim();
+        }
       }
     }
   }
